@@ -1,0 +1,74 @@
+{
+    "id": "Zrobotyzowane stanowisko zgrzwania garbowego",
+    "equipment": [
+        {
+            "id": "Robot",
+            "signals": {
+                "signalsBool": [
+                    {
+                        "id": "HomePos",
+                        "val": true
+                    },
+                    {
+                        "id": "PRO_ACT",
+                        "val": true
+                    }
+                ],
+                "signalsInt": []
+            }
+        },
+        {
+            "id": "Gripper",
+            "signals": {
+                "signalsBool": [
+                    {
+                        "id": "Valve",
+                        "val": false
+                    },
+                    {
+                        "id": "PosOpen",
+                        "val": true
+                    },
+                    {
+                        "id": "PosClose",
+                        "val": false
+                    }
+                ],
+                "signalsInt": []
+            }
+        },
+        {
+            "id": "Welding Machine",
+            "Signals": {
+                "signalsBool": [
+                    {
+                        "id": "Valve",
+                        "val": false
+                    },
+                    {
+                        "id": "PosUp",
+                        "val": true
+                    },
+                    {
+                        "id": "PosDown",
+                        "val": false
+                    },
+                    {
+                        "id": "Preasure sensor",
+                        "val": false
+                    }
+                ],
+                "signalsInt": [
+                    {
+                        "id": "Preasure sensor",
+                        "val": 0
+                    },
+                    {
+                        "id": "Cylinder position sensor",
+                        "val": 0
+                    }
+                ]
+            }
+        }
+    ]
+}
