@@ -7,7 +7,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 // Machine - struktura maszyny
@@ -36,12 +40,35 @@ type Machine struct {
 	}
 }
 
+var m Machine
+
 // ErrCheck - obsługa błedów
 // ============================================================================
 func ErrCheck(errNr error) {
 	if errNr != nil {
 		fmt.Println(errNr)
 	}
+}
+
+// APIGet - Wysłanie obiektu
+// ========================================================
+func APIGet(c *gin.Context) {
+
+	c.Header("Access-Control-Allow-Origin", "*")
+
+	c.JSON(http.StatusOK, m)
+}
+
+// APIPost - Zmiana obiektu
+// ========================================================
+func APIPost(c *gin.Context) {
+
+	// var newData Machine
+	// err := c.BindJSON(&newData)
+	// ErrCheck(err)
+
+	c.Header("Access-Control-Allow-Origin", "*")
+	c.JSON(http.StatusOK, gin.H{"Status": "Post OK"})
 }
 
 // ElapsedMilliseconds - sprawdznie odstepu czasu
@@ -52,14 +79,29 @@ func ElapsedMilliseconds(t0 int, czas int) bool {
 
 	if ((t1 - t0) / 1000000) > czas {
 		return true
+	}
+
+	return false
+}
+
+// Options - Obsługa request'u OPTIONS (CORS)
+// ========================================================
+func Options(c *gin.Context) {
+	if c.Request.Method != "OPTIONS" {
+		c.Next()
 	} else {
-		return false
+		c.Header("Access-Control-Allow-Origin", "*")
+		c.Header("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS")
+		c.Header("Access-Control-Allow-Headers", "authorization, origin, content-type, accept")
+		c.Header("Allow", "HEAD,GET,POST,PUT,PATCH,DELETE,OPTIONS")
+		c.Header("Content-Type", "application/json")
+		c.AbortWithStatus(http.StatusOK)
 	}
 }
 
 // ProgSim - generowanie opóznień
 // ============================================================================
-func ProgSim(m *Machine) {
+func ProgSim() {
 
 	GripperValveTime0 := time.Now()
 
@@ -90,7 +132,7 @@ func ProgSim(m *Machine) {
 
 // ProgInit - inicjacja zmiennych
 // ============================================================================
-func ProgInit(m *Machine) {
+func ProgInit() {
 	m.Gripper.bValve = false
 	m.Gripper.bPosClose = false
 	m.Gripper.bPosOpen = true
@@ -108,7 +150,7 @@ func ProgInit(m *Machine) {
 
 // ProgRun - program realizowany przez maszynę (PLC+Robot)
 // ============================================================================
-func ProgRun(m *Machine) {
+func ProgRun() {
 
 	for {
 
@@ -121,12 +163,11 @@ func ProgRun(m *Machine) {
 func main() {
 
 	// Nasze zmienne
-	var m Machine
 	m.sName = "DTP testing machine"
 	m.Robot.sName = "KUKA"
 	m.Gripper.sName = "Festo"
 	m.WeldingMachine.sName = "Dalex"
-	ProgInit(&m)
+	ProgInit()
 
 	// Wydruk struktury
 	jsonStream, err := json.MarshalIndent(m, "", "\t")
@@ -137,6 +178,13 @@ func main() {
 
 	// Run machine program
 	fmt.Println("Start machine program... " + m.sName)
-	go ProgSim(&m)
-	ProgRun(&m)
+	go ProgSim()
+	go ProgRun()
+
+	/// REST API
+	r := gin.Default()
+	r.Use(Options)
+	r.GET("/", APIGet)
+	r.POST("/", APIPost)
+	r.Run(":8090")
 }
